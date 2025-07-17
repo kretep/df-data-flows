@@ -1,52 +1,44 @@
+from dotenv import load_dotenv
+load_dotenv()
+
+from prefect import flow, task
 import requests
-import base64
-import dotenv
 import os
 from datetime import date
+from ntfy_utils import send_notification
 
 
+@task
+def get_birthdays(month: int, day: int) -> dict:
+    postgrest_url = os.getenv("POSTGREST_URL")
+    url = f"{postgrest_url}/birthdays?month=eq.{month}&day=eq.{day}"
+    print(f"Fetching birthdays from: {url}")
+    response = requests.get(url)
+
+    if response.status_code != 200:
+        print(f"Failed to fetch birthdays: {response.status_code} - {response.text}")
+        raise Exception("Failed to fetch birthdays")
+
+    return response.json()
+
+
+@task
 def send_birthday_notification(name, year):
-    print(f"Sending notification for {name}...")
-
-    username = os.getenv("NTFY_USERNAME")
-    password = os.getenv("NTFY_PASSWORD")
-    credentials = f"{username}:{password}"
-    encoded_credentials = base64.b64encode(credentials.encode("utf-8")).decode("utf-8")
-
-    headers = {
-        "Title": "Birthday reminder",
-        "Priority": "3",
-        "Authorization": f"Basic {encoded_credentials}"
-    }
-
     message = f"🎉 It's {name}'s birthday today!"
     if year:
         age = date.today().year - year
         message += f" ({age})"
 
-    host = os.getenv("NTFY_HOST")
-    topic = os.getenv("NTFY_TOPIC")
-    ntfy_url = f"{host}/{topic}"
-
-    requests.post(ntfy_url, data=message.encode("utf-8"), headers=headers)
+    send_notification("birthdays", "Birthday Reminder", message, priority=3)
 
 
+@flow
 def main():
-    dotenv.load_dotenv()
-
     today = date.today()
     month = today.month
     day = today.day
 
-    postgrest_url = os.getenv("POSTGREST_URL")
-    url = f"{postgrest_url}/birthdays?month=eq.{month}&day=eq.{day}"
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        print(f"Failed to fetch birthdays: {response.status_code} - {response.text}")
-        return
-
-    birthdays = response.json()
+    birthdays = get_birthdays(month, day)
     if not birthdays:
         print("No birthdays today.")
         return
