@@ -10,8 +10,8 @@ def fetch_text(endpoint: str) -> str:
     return response.text.strip()
 
 @task
-def fetch_json(endpoint: str) -> dict:
-    response = requests.get(endpoint)
+def fetch_json(endpoint: str, headers: dict = None, verify_ssl: bool = True) -> dict:
+    response = requests.get(endpoint, headers=headers, verify=verify_ssl)
     if response.status_code != 200:
         print(f"Failed to fetch data: {response.status_code} - {response.text}")
         raise Exception("Failed to fetch data")
