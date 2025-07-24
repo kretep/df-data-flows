@@ -4,7 +4,7 @@ load_dotenv()
 from prefect import flow, task
 from datetime import timedelta
 import os
-from api_utils import fetch_json
+from common.api_utils import fetch_json
 
 
 @task(

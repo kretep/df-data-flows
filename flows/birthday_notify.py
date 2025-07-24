@@ -5,7 +5,7 @@ from prefect import flow, task
 import requests
 import os
 from datetime import date
-from ntfy_utils import send_notification
+from common.ntfy_utils import send_notification
 
 
 @task

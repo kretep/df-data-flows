@@ -4,8 +4,8 @@ load_dotenv()
 
 from prefect import flow, task
 import os
-from api_utils import fetch_json
-from database_utils import write_to_database
+from common.api_utils import fetch_json
+from common.database_utils import write_to_database
 
 @task
 def get_enphase_data():

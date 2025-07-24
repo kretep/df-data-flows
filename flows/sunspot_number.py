@@ -4,7 +4,7 @@ load_dotenv()
 import os
 from datetime import timedelta
 from prefect import flow, task
-from api_utils import fetch_text
+from common.api_utils import fetch_text
 
 @task(
     persist_result=True,
