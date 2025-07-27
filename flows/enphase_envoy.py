@@ -22,7 +22,13 @@ def get_enphase_data():
 @task
 def process_data(data: dict) -> dict:
     data = data['production'][0]
-    readingTime = datetime.datetime.fromtimestamp(data['readingTime'], tz=datetime.timezone.utc)
+    timestamp = data['readingTime']
+    if timestamp > 0:
+        readingTime = datetime.datetime.fromtimestamp(timestamp, tz=datetime.timezone.utc)
+    else:
+        # For some reason, readingTime will be 0 when no power is being produced,
+        # but the wh_lifetime is still valid.
+        readingTime = datetime.datetime.now(tz=datetime.timezone.utc).replace(microsecond=0)
     return {
         'datetime': readingTime,
         'w_now': data['wNow'],
@@ -38,6 +44,7 @@ def store_data(data):
 @flow(name="Enphase data ETL")
 def enphase_data_etl():
     data = get_enphase_data()
+    print(f"Fetched data: {data}")
     processed_data = process_data(data)
     store_data(processed_data)
 
