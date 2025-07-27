@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS public.p1_meter
 (
-    created_at timestamp with time zone NOT NULL DEFAULT 'now()',
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
     active_tariff integer NOT NULL,
     total_power_import_kwh real NOT NULL,
     total_power_import_t1_kwh real NOT NULL,
