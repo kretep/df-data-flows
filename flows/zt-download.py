@@ -1,4 +1,4 @@
-# %%
+
 from dotenv import load_dotenv
 load_dotenv()
 from prefect import flow, task
@@ -8,16 +8,25 @@ import re
 import json
 import os
 
-# %%
-# Generic (non-API) helper functions
+DOWNLOADS_LIST = "downloaded.txt"
 
+# Generic (non-API) helper functions
 def get_valid_filename(name: str) -> str:
     name = name.strip()
     return re.sub(r'(?u)[\\/:*?\"<>|]', '-', name)
 # print(get_valid_filename("ab.c-es(e)gs/eg   e\eg"))
 
+def get_path_in_output_dir(file_name: str) -> str:
+    output_dir = os.getenv("ZT_OUTPUT_DIR", "output/zt-download")
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    return os.path.join(output_dir, file_name)
+
 def is_already_processed(videoId) -> bool:
-    with open("downloaded.txt", "r") as downloaded_files_list:
+    path = get_path_in_output_dir(DOWNLOADS_LIST)
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Downloads list not found at {path}")
+    with open(path, "r") as downloaded_files_list:
         downloaded_vids = downloaded_files_list.readlines()
     for line in downloaded_vids:
         if videoId in line:
@@ -26,49 +35,51 @@ def is_already_processed(videoId) -> bool:
 
 @task
 def download_file(file_url, file_name) -> None:
-    print("Downloading to", file_name)
+    path = get_path_in_output_dir(file_name)
+    print("Downloading to", path)
     response = requests.get(file_url)
-    with open(file_name, 'wb') as target_file:
+    with open(path, 'wb') as target_file:
         target_file.write(response.content)
 
 @task
 def log_download(videoId, file_title) -> None:
-    with open("downloaded.txt", "a") as downloaded_files_list:
+    path = get_path_in_output_dir(DOWNLOADS_LIST)
+    with open(path, "a") as downloaded_files_list:
         downloaded_files_list.write(f'{videoId} {file_title}\n')
 
 
-# %%
 @task
 def api_get_playlist_videos(playlist_id, api_key):
-    url = "https://youtube-data8.p.rapidapi.com/playlist/videos/"
+    api_host = os.getenv("ZT_PLAYLIST_API_HOST")
+    url = f"https://{api_host}/playlist/videos/"
     querystring = {"id":playlist_id, "hl":"en", "gl":"US"}
     headers = {
         "X-RapidAPI-Key": api_key,
-        "X-RapidAPI-Host": "youtube-data8.p.rapidapi.com"
+        "X-RapidAPI-Host": api_host
     }
     response = requests.request("GET", url, headers=headers, params=querystring)
     print(f"API response status code: {response.status_code}")
     return response.json()
 
 
-# %%
 @task
 def api_video_to_mp3(video_id: str, api_key: str) -> dict:
-    url = "https://youtube-mp36.p.rapidapi.com/dl"
+    api_host = os.getenv("ZT_MP3_API_HOST")
+    url = f"https://{api_host}/dl"
     querystring = {"id": video_id}
     headers = {
       "X-RapidAPI-Key": api_key,
-      "X-RapidAPI-Host": "youtube-mp36.p.rapidapi.com"
+      "X-RapidAPI-Host": api_host
     }
     response = requests.get(url, headers=headers, params=querystring)
     return response.json()
 
 
-# %%
 @flow
-def download_yt_video(video, api_key) -> None:
+def download_zt_video(video, api_key) -> None:
+    zt_host = os.getenv("ZT_HOST")
     videoId = video["videoId"]
-    video_url = f'https://www.youtube.com/watch?v={videoId}'
+    video_url = f'{zt_host}/watch?v={videoId}'
     file_title = f'{video["author"]["title"]} - {video["title"]}'
     print('Downloading', file_title, video_url)
 
@@ -91,21 +102,20 @@ def download_yt_video(video, api_key) -> None:
     log_download(videoId, file_title)
 
 
-# %%
 @flow
 def download_videos_from_playlist():
-    YT_PLAYLIST_ID = os.getenv("YT_PLAYLIST_ID")
-    YT_PLAYLIST_API_KEY = os.getenv("YT_PLAYLIST_API_KEY")
-    YT_MP3_API_KEY = os.getenv("YT_MP3_API_KEY")
+    ZT_PLAYLIST_ID = os.getenv("ZT_PLAYLIST_ID")
+    ZT_PLAYLIST_API_KEY = os.getenv("ZT_PLAYLIST_API_KEY")
+    ZT_MP3_API_KEY = os.getenv("ZT_MP3_API_KEY")
 
-    video_list = api_get_playlist_videos(playlist_id=YT_PLAYLIST_ID, api_key=YT_PLAYLIST_API_KEY)["contents"]
+    video_list = api_get_playlist_videos(playlist_id=ZT_PLAYLIST_ID, api_key=ZT_PLAYLIST_API_KEY)["contents"]
     print("Found", len(video_list), "videos in playlist")
     for item in video_list:
         video = item["video"]
         if not is_already_processed(video["videoId"]):
-            download_yt_video(video, YT_MP3_API_KEY)
+            download_zt_video(video, ZT_MP3_API_KEY)
     print("Finished processing")
 
-# %%
+
 if __name__ == "__main__":
     download_videos_from_playlist()
