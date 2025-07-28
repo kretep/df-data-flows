@@ -4,6 +4,7 @@ load_dotenv()
 
 from prefect import flow, task
 import os
+from sqlalchemy.exc import IntegrityError
 from common.api_utils import fetch_json
 from common.database_utils import write_to_database
 
@@ -39,7 +40,16 @@ def process_data(data: dict) -> dict:
 def store_data(data):
     database_connection = os.getenv("DATABASE_CONNECTION")
     table_name = os.getenv("EN_DB_TABLE")
-    write_to_database(database_connection, table_name, data)
+    try:
+        write_to_database(database_connection, table_name, data)
+    except IntegrityError as e:
+        # Check if it's a unique constraint violation
+        if "unique constraint" in str(e.orig).lower() or "duplicate key" in str(e.orig).lower():
+            # Silently ignore unique constraint violations
+            print("Warning: entry already exists")
+        else:
+            # Re-raise other integrity errors
+            raise
 
 @flow(name="Enphase data ETL")
 def enphase_data_etl():
