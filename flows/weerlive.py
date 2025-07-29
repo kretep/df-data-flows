@@ -3,8 +3,8 @@ load_dotenv()
 
 from prefect import flow, task
 from prefect.cache_policies import TASK_SOURCE, INPUTS
-from datetime import datetime, timedelta
 import os
+from datetime import datetime, timedelta, timezone
 from common.api_utils import fetch_json
 from common.database_utils import write_to_database
 from common.prefect_utils import invalidate_cache
@@ -32,15 +32,16 @@ def get_weerlive_data(location=None) -> dict:
 @task
 def process_weerlive_data(data: dict) -> dict:
     # Filter the keys that we want
-    #TODO: use time column and actually store it instead of 'now'
     keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'winds', 'luchtd', 'dauwp', 'zicht', 'image']
-    return { key: data[key] for key in keys }
+    processed_data = {key: data[key] for key in keys}
+    processed_data['datetime'] = datetime.fromtimestamp(int(data['timestamp']), tz=timezone.utc)
+    return processed_data
 
 @task
 def store_weerlive_data(data: dict):
     connection = os.getenv("DATABASE_CONNECTION")
     table_name = os.getenv("WL_TABLE")
-    write_to_database(connection, table_name, data)
+    write_to_database(connection, table_name, data, ignore_unique_error=True)
 
 def maybe_invalidate_cache(location: str, data: dict) -> bool:
     """
