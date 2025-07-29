@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import os
 from common.api_utils import fetch_json
 from common.database_utils import write_to_database
+from common.prefect_utils import invalidate_cache
 
 
 def cache_key_fn(task, args):
@@ -31,6 +32,7 @@ def get_weerlive_data(location=None) -> dict:
 @task
 def process_weerlive_data(data: dict) -> dict:
     # Filter the keys that we want
+    #TODO: use time column and actually store it instead of 'now'
     keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'winds', 'luchtd', 'dauwp', 'zicht', 'image']
     return { key: data[key] for key in keys }
 
@@ -39,7 +41,6 @@ def store_weerlive_data(data: dict):
     connection = os.getenv("DATABASE_CONNECTION")
     table_name = os.getenv("WL_TABLE")
     write_to_database(connection, table_name, data)
-
 
 def maybe_invalidate_cache(location: str, data: dict) -> bool:
     """
@@ -58,18 +59,8 @@ def maybe_invalidate_cache(location: str, data: dict) -> bool:
         # Invalidating the cache 12 minutes (not 10) after the result time,
         # as the data takes some time to be updated.
         print("Cache is outdated, invalidating...")
-        cache_filename = cache_key_fn(None, {'location': location})
-        cache_dir = os.getenv("PREFECT_CACHE_DIR")
-        if not cache_dir:
-            print("PREFECT_CACHE_DIR is not set, cannot invalidate cache.")
-            return False
-        path = os.path.join(cache_dir, cache_filename)
-        if os.path.exists(path):
-            os.remove(path)
-            print(f"Cache file {path} removed.")
-        else:
-            print(f"Cache file {path} does not exist.")
-        return True
+        key = cache_key_fn(None, {'location': location})
+        return invalidate_cache(key)
     return False
 
 @flow
