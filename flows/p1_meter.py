@@ -1,20 +1,20 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import os
 from prefect import flow, task
+import os
 from common.api_utils import fetch_json
 from common.database_utils import write_to_database
 
 
 @task
-def fetch_homewizard_data():
+def fetch_p1_meter_data():
     url = os.getenv("HW_P1_ENDPOINT")
     data = fetch_json(url)
     return data
 
 @task
-def process_homewizard_data(data):
+def process_p1_meter_data(data):
     # Filter the keys that we want
     keys = [
         'active_tariff',
@@ -33,17 +33,17 @@ def process_homewizard_data(data):
     return data
 
 @task
-def store_homewizard_data(data):
+def store_p1_meter_data(data):
     # Write the data to the database
     connection = os.getenv("DATABASE_CONNECTION")
     table_name = os.getenv("HW_P1_TABLE")
     write_to_database(connection, table_name, data)
 
-@flow(name="Homewizard data ETL")
-def homewizard_etl():
-    data = fetch_homewizard_data()
-    processed_data = process_homewizard_data(data)
-    store_homewizard_data(processed_data)
+@flow(name="p1_meter data ETL")
+def p1_meter_etl():
+    data = fetch_p1_meter_data()
+    processed_data = process_p1_meter_data(data)
+    store_p1_meter_data(processed_data)
 
 if __name__ == "__main__":
-    homewizard_etl()
+    p1_meter_etl()
