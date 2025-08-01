@@ -2,14 +2,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from prefect import flow, task
-import requests
+import os
+from common.api_utils import fetch_json
 from common.ntfy_utils import send_notification
 
 
 @task
 def get_kp_index() -> int:
-    api_endpoint = "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json"
-    data = requests.get(api_endpoint, timeout=5).json()
+    url = os.getenv("KP_INDEX_URL")
+    data = fetch_json(url)
     kp_index = float(data[-1][1])
     return kp_index
 
@@ -20,11 +21,11 @@ def send_kp_index_notification(value):
 
 
 @flow
-def main():
+def kp_index_notify():
     kp_index = get_kp_index()
-    if kp_index >= 1:
+    if kp_index >= 5:
         send_kp_index_notification(kp_index)
 
 
 if __name__ == "__main__":
-    main()
+    kp_index_notify()

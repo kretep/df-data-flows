@@ -33,7 +33,7 @@ def send_birthday_notification(name, year):
 
 
 @flow
-def main():
+def birthday_notify():
     today = date.today()
     month = today.month
     day = today.day
@@ -47,4 +47,4 @@ def main():
         send_birthday_notification(person["name"], person.get("year"))
 
 if __name__ == "__main__":
-    main()
+    birthday_notify()
