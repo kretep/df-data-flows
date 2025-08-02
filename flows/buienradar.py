@@ -9,8 +9,8 @@ from common.api_utils import fetch_text
 @task
 def fetch_buienradar_data() -> str:
     url = os.getenv("BR_URL")
-    lat = os.getenv("EIDASH_LATITUDE")
-    lon = os.getenv("EIDASH_LONGITUDE")
+    lat = os.getenv("BR_LATITUDE")
+    lon = os.getenv("BR_LONGITUDE")
     if lat is None or lon is None:
         return ''
     url = f'{url}?lat={lat}&lon={lon}'

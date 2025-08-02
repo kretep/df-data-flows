@@ -7,7 +7,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from common.api_utils import fetch_json
 from common.database_utils import write_to_database
-from common.prefect_utils import invalidate_cache
+from common.prefect_utils import maybe_invalidate_cache
 
 
 def cache_key_fn(task, args):
@@ -43,33 +43,14 @@ def store_weerlive_data(data: dict):
     table_name = os.getenv("WL_TABLE")
     write_to_database(connection, table_name, data, ignore_unique_error=True)
 
-def maybe_invalidate_cache(location: str, data: dict) -> bool:
-    """
-    Custom logic for invalidating the cache based on the data's timestamp.
-    Scenario:
-        result time  21:45
-        cache time   21:53
-        current time 21:57
-    Cache is not outdated, but results are stale, so we invalidate the cache.
-    Invalidation is done by removing the cache file.
-    """
-    date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M')
-    date_now = datetime.now()
-    print(f"Age of result: {date_now - date_result} seconds")
-    if (date_now - date_result).total_seconds() > 720:
-        # Invalidating the cache 12 minutes (not 10) after the result time,
-        # as the data takes some time to be updated.
-        print("Cache is outdated, invalidating...")
-        key = cache_key_fn(None, {'location': location})
-        return invalidate_cache(key)
-    return False
 
 @flow
 def weerlive_data_etl():
     location = "Berg en Dal"
     data = get_weerlive_data(location)
     print(data)
-    if maybe_invalidate_cache(location, data):
+    date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M')
+    if maybe_invalidate_cache(date_result, cache_key_fn(location=location), 720):
         data = get_weerlive_data(location)  # Re-fetch
         print(data)
     processed_data = process_weerlive_data(data)
