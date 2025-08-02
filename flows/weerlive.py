@@ -50,7 +50,8 @@ def weerlive_data_etl():
     data = get_weerlive_data(location)
     print(data)
     date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M')
-    if maybe_invalidate_cache(date_result, cache_key_fn(location=location), 720):
+    cache_key = cache_key_fn(None, {'location': location})
+    if maybe_invalidate_cache(date_result, cache_key, 720):
         data = get_weerlive_data(location)  # Re-fetch
         print(data)
     processed_data = process_weerlive_data(data)
