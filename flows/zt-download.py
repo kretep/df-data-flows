@@ -58,6 +58,9 @@ def api_get_playlist_videos(playlist_id, api_key):
         "X-RapidAPI-Key": api_key,
         "X-RapidAPI-Host": api_host
     }
+    # Note that for some reason, the sorting of the playlist
+    # on ZT matters; only 100 entries are returned, so make sure
+    # the playlist is sorted by "Date added (newest)" on ZT
     response = requests.request("GET", url, headers=headers, params=querystring)
     print(f"API response status code: {response.status_code}")
     return response.json()
