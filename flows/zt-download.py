@@ -7,6 +7,7 @@ import time
 import re
 import json
 import os
+import sys
 
 DOWNLOADS_LIST = "downloaded.txt"
 
@@ -61,6 +62,19 @@ def api_get_playlist_videos(playlist_id, api_key):
     print(f"API response status code: {response.status_code}")
     return response.json()
 
+@task
+def api_get_video_info(video_id, api_key):
+    # Only used for single videos; playlist videos are fetched in bulk
+    api_host = os.getenv("ZT_PLAYLIST_API_HOST")
+    url = f"https://{api_host}/video/details/"
+    querystring = {"id":video_id, "hl":"en", "gl":"US"}
+    headers = {
+        "X-RapidAPI-Key": api_key,
+        "X-RapidAPI-Host": api_host
+    }
+    response = requests.request("GET", url, headers=headers, params=querystring)
+    print(f"API response status code: {response.status_code}")
+    return response.json()
 
 @task
 def api_video_to_mp3(video_id: str, api_key: str) -> dict:
@@ -117,5 +131,23 @@ def download_videos_from_playlist():
     print("Finished processing")
 
 
+@flow
+def download_single_video(video_id: str):
+    ZT_MP3_API_KEY = os.getenv("ZT_MP3_API_KEY")
+    ZT_PLAYLIST_API_KEY = os.getenv("ZT_PLAYLIST_API_KEY")
+
+    video = api_get_video_info(video_id, ZT_PLAYLIST_API_KEY)
+    if not is_already_processed(video["videoId"]):
+        download_zt_video(video, ZT_MP3_API_KEY)
+    print("Finished processing single video")
+
 if __name__ == "__main__":
-    download_videos_from_playlist()
+    if len(sys.argv) > 1:
+        # Video ID provided as command line argument
+        video_id = sys.argv[1]
+        print(f"Downloading single video: {video_id}")
+        download_single_video(video_id)
+    else:
+        # No argument provided, download the whole playlist
+        print("No video ID provided, downloading entire playlist")
+        download_videos_from_playlist()
