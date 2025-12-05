@@ -8,6 +8,7 @@ import re
 import json
 import os
 import sys
+import subprocess
 
 DOWNLOADS_LIST = "downloaded.txt"
 
@@ -91,6 +92,30 @@ def api_video_to_mp3(video_id: str, api_key: str) -> dict:
     response = requests.get(url, headers=headers, params=querystring)
     return response.json()
 
+@task
+def apply_mp3gain(file_path: str) -> None:
+    
+    # Use subprocess with proper argument handling for spaces
+    cmd = ["mp3gain", "-r", "-c", "-d", "6", "-p", file_path]
+    # -r radio gain (as opposed to album gain)
+    # -c ignore clipping
+    # -d add 6 dB to default of 89 dB
+    # -p preserves timestamp
+    
+    try:
+        # Feed 'yes' to stdin to handle any prompts
+        result = subprocess.run(
+            cmd,
+            input=b"yes\n" * 10,  # Multiple yes responses
+            capture_output=True,
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(
+            f"mp3gain failed with exit code {e.returncode}\n"
+            f"stdout: {e.stdout.decode()}\n"
+            f"stderr: {e.stderr.decode()}"
+        )
 
 @flow
 def download_zt_video(video, api_key) -> None:
@@ -115,7 +140,9 @@ def download_zt_video(video, api_key) -> None:
 
     download_url = data['link']
     print("Download available at:", download_url)
-    download_file(download_url, f'{file_title}.mp3')
+    file_name = f'{file_title}.mp3'
+    download_file(download_url, file_name)
+    apply_mp3gain(get_path_in_output_dir(file_name))
     log_download(videoId, file_title)
 
 
