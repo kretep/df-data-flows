@@ -23,6 +23,12 @@ def get_birthdays(month: int, day: int) -> dict:
 
 
 @task
+def get_todays_birthdays() -> dict:
+    today = date.today()
+    return get_birthdays(today.month, today.day)
+
+
+@task
 def send_birthday_notification(name, year):
     message = f"🎉 It's {name}'s birthday today!"
     if year:
@@ -34,11 +40,7 @@ def send_birthday_notification(name, year):
 
 @flow
 def birthday_notify():
-    today = date.today()
-    month = today.month
-    day = today.day
-
-    birthdays = get_birthdays(month, day)
+    birthdays = get_todays_birthdays()
     if not birthdays:
         print("No birthdays today.")
         return

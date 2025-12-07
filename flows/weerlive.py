@@ -21,11 +21,10 @@ def cache_key_fn(task, args):
     retries=3,
     retry_delay_seconds=5,
 )
-def get_weerlive_data(location=None) -> dict:
+def get_weerlive_data(location: str) -> dict:
     print(f"Fetching Weerlive data for location: {location}")
     wl_key = os.environ['WL_KEY']
-    wl_location = os.environ['WL_LOCATION'] if location is None else location
-    query = f'http://weerlive.nl/api/json-data-10min.php?key={wl_key}&locatie={wl_location}'
+    query = f'http://weerlive.nl/api/json-data-10min.php?key={wl_key}&locatie={location}'
     data = fetch_json(query)
     return data['liveweer'][0]
 
@@ -38,15 +37,10 @@ def process_weerlive_data(data: dict) -> dict:
     return processed_data
 
 @task
-def store_weerlive_data(data: dict):
-    connection = os.getenv("DATABASE_CONNECTION")
-    table_name = os.getenv("WL_TABLE")
-    write_to_database(connection, table_name, data, ignore_unique_error=True)
-
-
-@flow
-def weerlive_data_etl():
-    location = "Berg en Dal"
+def fetch_current_weerlive_data():
+    """"Fetch the current Weerlive data and processes it,
+        with cache invalidation based on timestamp."""
+    location = os.environ['WL_LOCATION']
     data = get_weerlive_data(location)
     print(data)
     date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M')
@@ -55,6 +49,17 @@ def weerlive_data_etl():
         data = get_weerlive_data(location)  # Re-fetch
         print(data)
     processed_data = process_weerlive_data(data)
+    return processed_data
+
+@task
+def store_weerlive_data(data: dict):
+    connection = os.getenv("DATABASE_CONNECTION")
+    table_name = os.getenv("WL_TABLE")
+    write_to_database(connection, table_name, data, ignore_unique_error=True)
+
+@flow
+def weerlive_data_etl():
+    processed_data = fetch_current_weerlive_data()
     store_weerlive_data(processed_data)
 
 if __name__ == "__main__":

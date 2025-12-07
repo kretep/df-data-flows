@@ -72,7 +72,7 @@ def extract_current_value(entries: list[dict]) -> dict:
     }
 
 @flow(name="Nightscout data ETL")
-def nightscout_data_etl():
+def get_nightscout_data() -> dict:
     entries = fetch_entries() # Fetch the latest entries, potentially from cache
     
     # Sort entries by date in descending order
@@ -84,10 +84,9 @@ def nightscout_data_etl():
         entries = fetch_entries() # Re-fetch
 
     processed_data = extract_current_value(entries)
-    print(f"Processed data: {processed_data}")
-
+    return processed_data
 
 if __name__ == "__main__":
-    nightscout_data_etl()
+    data = get_nightscout_data()
     # data = get_data()
-    # print(data)
+    print(data)
