@@ -23,8 +23,8 @@ class NSDraw:
         main_text = f'{data["sgv"]}{data["direction"]}'
 
         # Determine text size and layout
-        delta_size = context.draw.textsize(delta_text, context.font_small)
-        main_size = context.draw.textsize(main_text, context.font_normal)
+        delta_size = context.textsize(delta_text, context.font_small)
+        main_size = context.textsize(main_text, context.font_normal)
         w = context.width
         delta_x = (w - delta_size[0]) / 2
         delta_y = 4 # margin

@@ -12,6 +12,11 @@ class DrawContext:
         self.draw = ImageDraw.Draw(self.image)
         self.image_text = ImageText(self.image, self.draw)
 
+    def textsize(self, text, font):
+        """Helper function to get text dimensions using textbbox (replaces deprecated textsize)"""
+        bbox = self.draw.textbbox((0, 0), text, font=font)
+        return (bbox[2] - bbox[0], bbox[3] - bbox[1])
+
     def clear_image(self):
         self.draw.rectangle((0, 0, self.width, self.height), fill=self.white)
 

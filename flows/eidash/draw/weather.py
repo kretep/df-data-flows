@@ -24,13 +24,13 @@ weather_icons = {
 def draw_current(context, x, y, w, h, data):
     # Icon
     icon_text = weather_icons.get(data["image"], "?")
-    icon_dim = context.draw.textsize(icon_text, font=context.font_weather_icons)
+    icon_dim = context.textsize(icon_text, context.font_weather_icons)
     context.draw.text((x + w/2 - icon_dim[0]/2, y-10), icon_text, 
         font=context.font_weather_icons)
 
     # Text
     text = data["samenv"]
-    text_dim = context.draw.textsize(text, context.font_small)
+    text_dim = context.textsize(text, context.font_small)
     context.image_text.write_text_box(x, y + h - context.font_small.size, text,
         box_width=2*w, font=context.font_small, color=context.black)
 
@@ -42,7 +42,7 @@ wind_dir_names_verw = ["Z", "ZZO", "ZO", "OZO", "O", "ONO", "NO", "NNO",
 def draw_wind(context, x, y, w, h, arrow_r, data):
     # Text
     text = f'{data["windr"]} {data["winds"]}'
-    text_dim = context.draw.textsize(text, context.font_small)
+    text_dim = context.textsize(text, context.font_small)
     context.image_text.write_text_box(x, y + h - context.font_small.size, text, w,
         font=context.font_small, color=context.black, align='center')
 
@@ -82,7 +82,7 @@ def draw_temp(context, x, y, w, h, data):
         align='center', color=context.black)
 
     # Wind chill
-    text_dim = context.draw.textsize(text, context.font_normal)
+    text_dim = context.textsize(text, context.font_normal)
     text2 = f'gevoel {data["gtemp"]}'
     context.image_text.write_text_box(x, y+text_dim[1]+4, text2, w, font=context.font_small,
         align='center', color=context.black)

@@ -6,8 +6,8 @@ def draw_nightscout(context, x, y, w, h, data):
     delta_text = f'{data["delta"]}\n[{minutes_ago_text}m]'
 
     # Determine text size
-    main_size = context.draw.textsize(main_text, context.font_normal)
-    delta_size = context.draw.textsize(delta_text, context.font_small)
+    main_size = context.textsize(main_text, context.font_normal)
+    delta_size = context.textsize(delta_text, context.font_small)
     main_x = x + (w - main_size[0] - delta_size[0]) / 2
     delta_x = main_x + main_size[0]
 

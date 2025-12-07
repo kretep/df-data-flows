@@ -9,6 +9,12 @@
 from PIL import ImageFont
 
 
+def getsize(font, text):
+    """Helper function to get text dimensions using getbbox (replaces deprecated getsize)"""
+    bbox = font.getbbox(text)
+    return (bbox[2] - bbox[0], bbox[3] - bbox[1])
+
+
 class ImageText(object):
     def __init__(self, image, draw):
         self.image = image
@@ -49,7 +55,7 @@ class ImageText(object):
 
     def get_text_size(self, font_filename, font_size, text):
         font = ImageFont.truetype(font_filename, font_size)
-        return font.getsize(text)
+        return getsize(font, text)
 
     def write_text_box(self, x, y, text, box_width, font,
                        color=(0, 0, 0), align='left',
@@ -60,7 +66,7 @@ class ImageText(object):
         words = text.split()
         for word in words:
             new_line = ' '.join(line + [word])
-            size = font.getsize(new_line)
+            size = getsize(font, new_line)
             text_height = size[1]
             if size[0] <= box_width:
                 line.append(word)
@@ -75,11 +81,11 @@ class ImageText(object):
             if align == 'left':
                 self.draw.text((x, line_y), line, font=font, fill=color)
             elif align == 'right':
-                total_size = font.getsize(line)
+                total_size = getsize(font, line)
                 x_left = x + box_width - total_size[0]
                 self.draw.text((x_left, line_y), line, font=font, fill=color)
             elif align == 'center':
-                total_size = font.getsize(line)
+                total_size = getsize(font, line)
                 x_left = int(x + ((box_width - total_size[0]) / 2))
                 self.draw.text((x_left, line_y), line, font=font, fill=color)
             elif align == 'justify':
@@ -89,14 +95,14 @@ class ImageText(object):
                     self.draw.text((x, line_y), line, font=font, fill=color)
                     continue
                 line_without_spaces = ''.join(words)
-                total_size = font.getsize(line_without_spaces)
+                total_size = getsize(font, line_without_spaces)
                 space_width = (box_width - total_size[0]) / (len(words) - 1.0)
                 word_x = x
                 for word in words[:-1]:
                     self.draw.text((word_x, line_y), word, font=font, fill=color)
-                    word_size = font.getsize(word)
+                    word_size = getsize(font, word)
                     word_x += word_size[0] + space_width
-                last_word_size = font.getsize(words[-1])
+                last_word_size = getsize(font, words[-1])
                 last_word_x = x + box_width - last_word_size[0]
                 self.draw.text((last_word_x, line_y), words[-1], font=font, fill=color)
             line_y += text_height
