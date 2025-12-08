@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from prefect import task
 import os
+from prefect import flow, task
 from common.api_utils import fetch_text
 
 
@@ -23,8 +23,12 @@ def process_data(data: str) -> list[tuple[str, str]]:
     tuples = [(line.split('|')[1].strip(), line.split('|')[0].strip().replace(",", ".")) for line in lines]
     return tuples
 
+@flow
+def fetch_and_process_buienradar_data() -> list[tuple[str, str]]:
+    raw_data = fetch_buienradar_data()
+    processed_data = process_data(raw_data)
+    return processed_data
 
 if __name__ == "__main__":
-    data = fetch_buienradar_data()
-    processed_data = process_data(data)
-    print(processed_data)
+    data = fetch_and_process_buienradar_data()
+    print(data)

@@ -14,7 +14,7 @@ from birthday_notify import get_todays_birthdays
 from sunspot_number import get_sunspot_number
 #from sunspot_image import get_sunspot_image
 from kpindex_notify import get_kp_index
-#from buienradar import get_buienradar_text
+from buienradar import fetch_and_process_buienradar_data
 
 from eidash.draw.hkdraw import HKDraw
 from eidash.esp32_client import send_image
@@ -30,7 +30,7 @@ def fetch_data():
         #"sunspot_image": get_sunspot_image(),
         "sunspot_number": get_sunspot_number(),
         "kp_index": get_kp_index(),
-        #"buienradar_text": get_buienradar_text(),
+        "buienradar_text": fetch_and_process_buienradar_data(),
     }
     return dataSources
 

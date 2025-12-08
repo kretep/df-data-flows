@@ -62,7 +62,7 @@ class HKDraw:
             add_call(draw_warning_symbol, context, x1+3*w1, y1, 28, 6)
 
         # Buienradar
-        #add_call(draw_buienradar_chart, context, 10, 170, 74, 74, data["buienradar_text"])
+        add_call(draw_buienradar_chart, context, 10, 170, 74, 74, data["buienradar_text"])
 
         # Moon phase and planets
         ephemData = data["ephem"]
