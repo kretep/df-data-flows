@@ -57,20 +57,20 @@ def get_sun_path():
 def get_horizon(date):
     horizon = []
     for i in range(36):
-        ra, dec = horizontal_to_equatorial(i * 10.0 - 180, 0.0)
+        ra, dec = horizontal_to_equatorial(i * 10.0 - 180, 0.0, date)
         horizon.append((ra, dec))
     return horizon
 
-def horizontal_to_equatorial(az, el):
+def horizontal_to_equatorial(az, el, date=None):
     latitude = 52.0 # TODO: get from config/env
     longitude = 4.5 # TODO: get from config/env
-    now = datetime.datetime.utcnow()
+    now = date if date is not None else datetime.datetime.utcnow()
 
     julian_date = get_julian_datetime(now)
 
     T = ((julian_date - 2451545.0) / 36525)
     theta0 = 280.46061837 + 360.98564736629 * (julian_date - 2451545.0) + (0.000387933 * T * T) - (T * T * T / 38710000.0)
-    angle = theta0 % 360
+    angle = (theta0 + longitude) % 360
     
     # utc_time = now.hour + 1.0 * now.minute / 60 + 1.0 * now.second / 3600
     # day_of_year = now.timetuple().tm_yday
