@@ -9,7 +9,7 @@ from PIL import Image
 
 from nightscout import get_nightscout_data
 from weerlive import fetch_current_weerlive_data
-#from ephem import get_ephem_data
+from common.ephem_utils import get_ephem_data
 from birthday_notify import get_todays_birthdays
 from sunspot_number import get_sunspot_number
 #from sunspot_image import get_sunspot_image
@@ -25,7 +25,7 @@ def fetch_data():
     dataSources = {
         "nightscout": get_nightscout_data(),
         "weather": fetch_current_weerlive_data(),
-        #"ephem": get_ephem_data(),
+        "ephem": get_ephem_data(),
         "birthdays": get_todays_birthdays(),
         #"sunspot_image": get_sunspot_image(),
         "sunspot_number": get_sunspot_number(),

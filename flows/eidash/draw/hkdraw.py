@@ -65,9 +65,9 @@ class HKDraw:
         #add_call(draw_buienradar_chart, context, 10, 170, 74, 74, data["buienradar_text"])
 
         # Moon phase and planets
-        # ephemData = data["ephem"]
-        # add_call(draw_moon_phase, context, 748, 80, 32, ephemData)
-        # add_call(draw_planets, context, 10, 330, 600, 130, ephemData)
+        ephemData = data["ephem"]
+        add_call(draw_moon_phase, context, 748, 80, 32, ephemData)
+        add_call(draw_planets, context, 10, 330, 600, 130, ephemData)
 
         # Sunspots
         # add_call(draw_sunspot_image, context, 10, 80-36, 72, 72, data["sunspot_image"])

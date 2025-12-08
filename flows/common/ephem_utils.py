@@ -7,7 +7,7 @@ import math
 from math import sin, cos, acos, asin, pi
 
 
-def get_data():
+def get_ephem_data():
     now = datetime.datetime.now()
     return {
         'moon_age_fraction': get_moon_age_fraction(now),
