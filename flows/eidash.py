@@ -55,7 +55,7 @@ def eidash_workflow():
     image_path = "eidash_output.png"
     image.save(image_path)
 
-    send_image(image)
+    # send_image(image)
 
 
 if __name__ == "__main__":

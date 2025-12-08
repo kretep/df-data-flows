@@ -29,14 +29,6 @@ def get_weerlive_data(location: str) -> dict:
     return data['liveweer'][0]
 
 @task
-def process_weerlive_data(data: dict) -> dict:
-    # Filter the keys that we want
-    keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'winds', 'luchtd', 'dauwp', 'zicht', 'image']
-    processed_data = {key: data[key] for key in keys}
-    processed_data['datetime'] = datetime.fromtimestamp(int(data['timestamp']), tz=timezone.utc)
-    return processed_data
-
-@task
 def fetch_current_weerlive_data():
     """"Fetch the current Weerlive data and processes it,
         with cache invalidation based on timestamp."""
@@ -48,7 +40,14 @@ def fetch_current_weerlive_data():
     if maybe_invalidate_cache(date_result, cache_key, 720):
         data = get_weerlive_data(location)  # Re-fetch
         print(data)
-    processed_data = process_weerlive_data(data)
+    return data
+
+@task
+def process_weerlive_data(data: dict) -> dict:
+    # Filter the keys that we want
+    keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'winds', 'luchtd', 'dauwp', 'zicht', 'image']
+    processed_data = {key: data[key] for key in keys}
+    processed_data['datetime'] = datetime.fromtimestamp(int(data['timestamp']), tz=timezone.utc)
     return processed_data
 
 @task
@@ -59,7 +58,8 @@ def store_weerlive_data(data: dict):
 
 @flow
 def weerlive_data_etl():
-    processed_data = fetch_current_weerlive_data()
+    data = fetch_current_weerlive_data()
+    processed_data = process_weerlive_data(data)
     store_weerlive_data(processed_data)
 
 if __name__ == "__main__":
