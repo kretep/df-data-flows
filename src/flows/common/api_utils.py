@@ -1,7 +1,5 @@
-from prefect import flow, task
 import requests
 
-@task
 def fetch_text(endpoint: str) -> str:
     response = requests.get(endpoint)
     if response.status_code != 200:
@@ -9,7 +7,6 @@ def fetch_text(endpoint: str) -> str:
         raise Exception("Failed to fetch data")
     return response.text.strip()
 
-@task
 def fetch_json(endpoint: str, headers: dict = None, verify_ssl: bool = True, params: dict = None) -> dict:
     response = requests.get(endpoint, headers=headers, verify=verify_ssl, params=params)
     if response.status_code != 200:

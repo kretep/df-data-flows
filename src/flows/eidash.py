@@ -12,7 +12,7 @@ from weerlive import fetch_current_weerlive_data
 from common.ephem_utils import get_ephem_data
 from birthday_notify import get_todays_birthdays
 from sunspot_number import get_sunspot_number
-#from sunspot_image import get_sunspot_image
+from sunspot_image import get_sunspot_image
 from kpindex_notify import get_kp_index
 from buienradar import fetch_and_process_buienradar_data
 
@@ -27,7 +27,7 @@ def fetch_data():
         "weather": fetch_current_weerlive_data(),
         "ephem": get_ephem_data(),
         "birthdays": get_todays_birthdays(),
-        #"sunspot_image": get_sunspot_image(),
+        "sunspot_image": get_sunspot_image(),
         "sunspot_number": get_sunspot_number(),
         "kp_index": get_kp_index(),
         "buienradar_text": fetch_and_process_buienradar_data(),
@@ -36,7 +36,7 @@ def fetch_data():
 
 @task
 def draw_data(data) -> Image.Image:
-    hkdraw = HKDraw(width=800, height=480, font_dir='flows/eidash/fonts')
+    hkdraw = HKDraw(width=800, height=480, font_dir='src/flows/eidash/fonts')
     hkdraw.draw_data(data)
     return hkdraw.context.image
 

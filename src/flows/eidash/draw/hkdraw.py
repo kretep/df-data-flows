@@ -70,7 +70,7 @@ class HKDraw:
         add_call(draw_planets, context, 10, 330, 600, 130, ephemData)
 
         # Sunspots
-        # add_call(draw_sunspot_image, context, 10, 80-36, 72, 72, data["sunspot_image"])
+        add_call(draw_sunspot_image, context, 10, 80-36, 72, 72, data["sunspot_image"])
         add_call(draw_sunspot_number, context, 10, 120, 72, 20, data["sunspot_number"])
         add_call(draw_kp_index, context, 10, 140, 140, 20, data["kp_index"])
 
