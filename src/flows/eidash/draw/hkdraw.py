@@ -49,6 +49,7 @@ class HKDraw:
         w1 = 140
         x1 = (self.context.width - 3 * w1) / 2
         weatherData = data["weather"]
+        warningData = data["knmi_warnings"]
         add_call(draw_current, context, x1, y1, w1, 80, weatherData)
         add_call(draw_temp, context, x1+w1, y1, w1, 64, weatherData)
         add_call(draw_wind, context, x1+2*w1, y1, w1, 80, 28, weatherData)
@@ -57,7 +58,7 @@ class HKDraw:
         forecast_x = 90
         forecast_text_y = 150 if isWarningActive else y1 + 110
         add_call(draw_forecast_table, context, forecast_x, y1 + 110, 100, 30, weatherData)
-        add_call(draw_forecast, context, forecast_x + 400, forecast_text_y, 300, 0, weatherData)
+        add_call(draw_forecast, context, forecast_x + 400, forecast_text_y, 300, 0, weatherData, warningData)
         if isWarningActive:
             add_call(draw_warning_symbol, context, x1+3*w1, y1, 28, 6)
 

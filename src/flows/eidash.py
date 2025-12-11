@@ -15,6 +15,7 @@ from sunspot_number import get_sunspot_number
 from sunspot_image import get_sunspot_image
 from kpindex_notify import get_kp_index
 from buienradar import fetch_and_process_buienradar_data
+from knmi_data import fetch_knmi_warnings
 
 from eidash.draw.hkdraw import HKDraw
 from eidash.esp32_client import send_image
@@ -25,6 +26,7 @@ def fetch_data():
     dataSources = {
         "nightscout": get_nightscout_data(),
         "weather": fetch_current_weerlive_data(),
+        "knmi_warnings": fetch_knmi_warnings(),
         "ephem": get_ephem_data(),
         "birthdays": get_todays_birthdays(),
         "sunspot_image": get_sunspot_image(),

@@ -58,7 +58,10 @@ def fetch_knmi_warnings():
     raw = download_knmi_file(url)
     first_line = parse_knmi_warnings(raw)
     print(first_line)
-    return first_line
+    warningData = {
+        "text": first_line
+    }
+    return warningData
 
 if __name__ == "__main__":
     fetch_knmi_warnings()
