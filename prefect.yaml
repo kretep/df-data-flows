@@ -1,0 +1,77 @@
+
+name: data-flows
+prefect-version: 3.4.6
+
+deployments:
+  - name: enphase-deployment
+    entrypoint: src/flows/enphase_envoy.py:enphase_data_etl
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "*/5 * * * *"
+      timezone: UTC
+    parameters: {}
+
+  - name: p1_meter-deployment
+    entrypoint: src/flows/p1_meter.py:p1_meter_etl
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "*/5 * * * *"
+      timezone: UTC
+    parameters: {}
+
+  - name: watermeter-deployment
+    entrypoint: src/flows/watermeter.py:watermeter_etl
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "*/5 * * * *"
+      timezone: UTC
+    parameters: {}
+
+  - name: weerlive-deployment
+    entrypoint: src/flows/weerlive.py:weerlive_data_etl
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "7 * * * *"
+      timezone: UTC
+    parameters: {}
+
+  - name: kp_index-deployment
+    entrypoint: src/flows/kpindex_notify.py:kp_index_notify
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "48 * * * *"
+      timezone: UTC
+    parameters: {}
+
+  - name: birthday_notify-deployment
+    entrypoint: src/flows/birthday_notify.py:birthday_notify
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "0 8 * * *"
+      timezone: CET
+    parameters: {}
+
+  - name: ZT-download
+    version: null
+    tags: []
+    concurrency_limit: null
+    description: null
+    entrypoint: src/flows/yt-download.py:download_videos_from_playlist
+    parameters: {}
+    work_pool:
+      name: default
+      work_queue_name: null
+      job_variables: {}
+    schedules: []
