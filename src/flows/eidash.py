@@ -1,4 +1,7 @@
 
+import functools
+import logging
+import traceback
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -23,18 +26,38 @@ from eidash.esp32_client import send_image
 
 @task
 def fetch_data() -> dict:
-    dataSources = {
-        "nightscout": get_nightscout_data(),
-        "weather": fetch_current_weerlive_data(),
-        "knmi_warnings": fetch_knmi_warnings(),
-        "ephem": get_ephem_data(),
-        "birthdays": get_todays_birthdays(),
-        "sunspot_image": get_sunspot_image(),
-        "sunspot_number": get_sunspot_number(),
-        "kp_index": get_kp_index(),
-        "buienradar_text": fetch_and_process_buienradar_data(),
-    }
-    return dataSources
+
+    # Prepare to collect all data fetching calls to execute (later, with proper error handling)
+    data_calls = []
+    def add_call(key, func, *args, **kwargs):
+        data_calls.append({
+            "key": key, "name": func.__name__, "call": functools.partial(func, *args, **kwargs)
+        })
+
+    # Add the calls
+    add_call("nightscout", get_nightscout_data)
+    add_call("weather", fetch_current_weerlive_data)
+    add_call("knmi_warnings", fetch_knmi_warnings)
+    add_call("ephem", get_ephem_data)
+    add_call("birthdays", get_todays_birthdays)
+    add_call("sunspot_image", get_sunspot_image)
+    add_call("sunspot_number", get_sunspot_number)
+    add_call("kp_data", get_kp_index)
+    add_call("buienradar_text", fetch_and_process_buienradar_data)
+    
+    # Execute all data fetching calls with error handling
+    collected_data = {}
+    for call in data_calls:
+        logging.info("CALLING " +call["name"])
+        try:
+            collected_data[call["key"]] = call["call"]()   # Execute the functools.partial
+        except Exception as err:
+            collected_data[call["key"]] = {
+                "error": str(err)
+            }
+            print(traceback.format_exc())
+
+    return collected_data
 
 @task
 def draw_data(data: dict) -> Image.Image:
@@ -74,7 +97,7 @@ def eidash_workflow():
     image.save(image_path)
 
     # Send image to ESP32 device
-    send_image_task(image)
+    #send_image_task(image)
 
 
 if __name__ == "__main__":

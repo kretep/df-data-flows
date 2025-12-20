@@ -1,6 +1,6 @@
 from .moonphase import draw_moon_phase
 
-def draw_planets(context, x, y, w, h, data):
+def draw_planets(context, data, x, y, w, h):
 
     # Background (for "below horizon")
     n = 60
@@ -60,7 +60,7 @@ def draw_planets(context, x, y, w, h, data):
             context.draw.ellipse((xc - r, yc - r, xc + r, yc + r), fill=context.white, outline=context.black, width=2)
         elif key == "Moon":
             r = 6
-            draw_moon_phase(context, xc, yc, r, data, line_width=1)
+            draw_moon_phase(context, data, xc, yc, r, line_width=1)
         else:
             context.draw.ellipse((xc - r, yc - r, xc + r, yc + r), fill=context.black)
             symbol = key[0] if key != 'Mercury' else 'm'

@@ -1,10 +1,8 @@
-from prefect import flow, task
 import os
 import base64
 import requests
 
 
-@task
 def send_notification(topic: str, title: str, message: str, priority: int = 3):
     username = os.getenv("NTFY_USERNAME")
     password = os.getenv("NTFY_PASSWORD")

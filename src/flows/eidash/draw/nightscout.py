@@ -1,5 +1,5 @@
 
-def draw_nightscout(context, x, y, w, h, data):
+def draw_nightscout(context, data, x, y, w, h):
     minutes_ago = data["minutes_ago"]
     minutes_ago_text = str(minutes_ago) if minutes_ago >= 0 else "?"
     main_text = f'{data["sgv"]}{data["direction"]}'

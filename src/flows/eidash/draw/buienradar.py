@@ -1,6 +1,6 @@
 from math import sin, cos, pi, pow
 
-def draw_buienradar_chart(context, x, y, w, h, data):
+def draw_buienradar_chart(context, data, x, y, w, h):
     context.draw.rectangle((x, y, x+w, y+h))
     n = len(data) - 1
     pts = [(x + int(1.0 * w * i / n), y+h - int(1.0 * h * float(p[1]) / 255)) for i, p in enumerate(data)]

@@ -12,7 +12,7 @@ def get_kp_index() -> int:
     url = os.getenv("KP_INDEX_URL")
     data = fetch_json(url)
     kp_index = float(data[-1][1])
-    return kp_index
+    return { "kp_index": kp_index }
 
 
 @task
@@ -22,7 +22,7 @@ def send_kp_index_notification(value):
 
 @flow
 def kp_index_notify():
-    kp_index = get_kp_index()
+    kp_index = get_kp_index()["kp_index"]
     if kp_index >= 5:
         send_kp_index_notification(kp_index)
 

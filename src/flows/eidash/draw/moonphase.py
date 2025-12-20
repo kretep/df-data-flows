@@ -1,6 +1,6 @@
 import math
 
-def draw_moon_phase(context, x, y, r, data, line_width=2):
+def draw_moon_phase(context, data, x, y, r, line_width=2):
     draw = context.draw
     black = context.black
     white = context.white

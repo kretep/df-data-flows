@@ -21,7 +21,7 @@ weather_icons = {
     "nachtbewolkt": "\ue91a",
 }
 
-def draw_current(context, x, y, w, h, data):
+def draw_current(context, data, x, y, w, h):
     # Icon
     icon_text = weather_icons.get(data["image"], "?")
     icon_dim = context.textsize(icon_text, context.font_weather_icons)
@@ -39,7 +39,7 @@ wind_dir_names = ["Zuid", "ZZO", "ZO", "OZO", "Oost", "ONO", "NO", "NNO",
 wind_dir_names_verw = ["Z", "ZZO", "ZO", "OZO", "O", "ONO", "NO", "NNO", 
         "N", "NNW", "NW", "WNW", "W", "WZW", "ZW", "ZZW"] # and VAR for variable
 
-def draw_wind(context, x, y, w, h, arrow_r, data):
+def draw_wind(context, data, x, y, w, h, arrow_r):
     # Text
     text = f'{data["windr"]} {data["winds"]}'
     text_dim = context.textsize(text, context.font_small)
@@ -75,7 +75,7 @@ def draw_arrow(context, cx, cy, r, angle, line_width):
     pts = [tuple(p[:-1]) for p in pts]
     context.draw_pretty_polygon(pts, line_width=line_width, fill=context.white)
 
-def draw_temp(context, x, y, w, h, data):
+def draw_temp(context, data, x, y, w, h):
     # Temperature
     text = f'{data["temp"]}°C'
     context.image_text.write_text_box(x, y, text, w, font=context.font_normal,
@@ -87,22 +87,22 @@ def draw_temp(context, x, y, w, h, data):
     context.image_text.write_text_box(x, y+text_dim[1]+4, text2, w, font=context.font_small,
         align='center', color=context.black)
 
-def draw_atmos(context, x, y, w, h, data):
+def draw_atmos(context, data, x, y, w, h):
     lv = data["lv"]
     luchtd = round(float(data["luchtd"]))
     text = f'{lv}%\n{luchtd} hPa'
     context.draw.text((x, y), text, font=context.font_small, fill=context.black)
 
-def draw_forecast(context, x, y, w, h, weatherData, warningData):
-    text = f'Verw: {weatherData["verw"]}'
+def draw_forecast(context, data, x, y, w, h):
+    text = f'Verw: {data["weather"]["verw"]}'
     # Yes, we use the weerlive flag to indicate if there is a warning
     # and use the knmi data for the text:
-    if weatherData["alarm"] == "1":
-        text += f' | {warningData["text"]}'
+    if data["weather"]["alarm"] == "1":
+        text += f' | {data["warning"]["text"]}'
     context.image_text.write_text_box(x, y, text, box_width=w, \
         font=context.font_small, color=context.black)
 
-def draw_warning_symbol(context, x, y, r, line_width):
+def draw_warning_symbol(context, data, x, y, r, line_width):
     x += r
     y += r
     # Triangle
@@ -116,7 +116,7 @@ def draw_warning_symbol(context, x, y, r, line_width):
     context.draw_pretty_polygon(pts, line_width=line_width, fill=context.white, outline=context.white)
     context.draw_circle((x, y + 0.6 * r), line_width/2, fill=context.white)
 
-def draw_forecast_table(context, x, y, column_width, row_height, data):
+def draw_forecast_table(context, data, x, y, column_width, row_height):
     draw = context.draw
     font = context.font_small
     h = 5 * row_height

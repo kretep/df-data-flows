@@ -1,6 +1,6 @@
 from datetime import datetime
 
-def draw_birthdays(context, x, y, data):
+def draw_birthdays(context, data, x, y):
     age_text = lambda year: f' ({(datetime.now().year - year)})' if year != None else ""
     names = [f'{birthday["name"]}{age_text(birthday["year"])}' for birthday in data]
     if len(names) > 0:
