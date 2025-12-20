@@ -3,6 +3,16 @@ name: data-flows
 prefect-version: 3.4.6
 
 deployments:
+  - name: eidash-deployment
+    entrypoint: src/flows/eidash.py:eidash_workflow
+    work_pool:
+      name: default
+      work_queue_name: default
+    schedule:
+      cron: "*/5 * * * *"
+      timezone: UTC
+    parameters: {}
+
   - name: enphase-deployment
     entrypoint: src/flows/enphase_envoy.py:enphase_data_etl
     work_pool:
