@@ -7,15 +7,10 @@ import os, requests
 from datetime import timedelta
 from common.api_utils import fetch_json
 
-def cache_key_fn(task, args):
-    return "knmi_data"
-
 
 @task(
-    persist_result=True,
-    cache_key_fn=cache_key_fn,
-    cache_expiration=timedelta(minutes=10),
     cache_policy=TASK_SOURCE + INPUTS,
+    cache_expiration=timedelta(minutes=30),
     retries=3,
     retry_delay_seconds=5,
 )
