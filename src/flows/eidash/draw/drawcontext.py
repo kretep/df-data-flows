@@ -20,6 +20,14 @@ class DrawContext:
     def clear_image(self):
         self.draw.rectangle((0, 0, self.width, self.height), fill=self.white)
 
+    def draw_centered_text(self, position, text, font, fill):
+        bbox = self.draw.textbbox((0, 0), text, font=font)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        x = position[0] - text_width / 2
+        y = position[1] - text_height / 2 - bbox[1]  # Subtract top offset for true vertical centering
+        self.draw.text((x, y), text, font=font, fill=fill)
+
     def draw_circle(self, coords, r, *args, **kwargs):
         x, y = coords
         self.draw.ellipse((x - r, y - r, x + r, y + r), *args, **kwargs)

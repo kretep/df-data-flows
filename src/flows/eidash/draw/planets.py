@@ -1,4 +1,6 @@
+import math
 from .moonphase import draw_moon_phase
+
 
 def draw_planets(context, data, x, y, w, h):
 
@@ -50,8 +52,16 @@ def draw_planets(context, data, x, y, w, h):
         p2 = equatorial_to_pixel(positions[i2][0], positions[i2][1])
         context.draw_dashed_line(p1[0], p1[1], p2[0], p2[1], 2)
 
+    # First compute label positions
+    planet_points = []
+    for key, value in data["positions"].items():
+        xc, yc = equatorial_to_pixel(*value)
+        planet_points.append((xc, yc))
+    label_positions = compute_label_positions(planet_points, R=12.0, power=2)
+
     # Planets
     positions = data["positions"]
+    index = 0
     for key, value in positions.items():
         xc, yc = equatorial_to_pixel(*value)
         r = 2
@@ -64,7 +74,8 @@ def draw_planets(context, data, x, y, w, h):
         else:
             context.draw.ellipse((xc - r, yc - r, xc + r, yc + r), fill=context.black)
             symbol = key[0] if key != 'Mercury' else 'm'
-            context.draw.text((xc + r, yc + r), symbol, font=context.font_small)
+            context.draw_centered_text(label_positions[index], symbol, font=context.font_small, fill=context.black)
+        index += 1
 
     # Calendar lines
     for i in range(5):
@@ -72,3 +83,60 @@ def draw_planets(context, data, x, y, w, h):
         #context.draw.line((xc, y, xc, y + h))
         context.draw_dashed_line(xc, y, xc, y + h, 20)
         context.draw.text((xc - 10, y + h), ["mrt", "jun", "sep", "dec", "mrt"][i], font=context.font_small)
+
+
+def compute_label_positions(points, R=10.0, power=2):
+    """
+    Compute outward label directions from repulsive forces
+    and return label positions at fixed distance R.
+
+    points: list of (x,y)
+    R: label offset distance
+    power: falloff exponent (1=soft, 2=strong)
+    """
+    label_positions = []
+
+    for i, (xi, yi) in enumerate(points):
+        Fx, Fy = 0.0, 0.0
+
+        for j, (xj, yj) in enumerate(points):
+            if i == j:
+                continue
+
+            dx = xi - xj
+            dy = yi - yj
+            dist2 = dx*dx + dy*dy
+            if math.sqrt(dist2) > 20.0:
+                continue  # ignore distant points
+
+            if dist2 == 0:
+                continue  # overlapping points, skip
+
+            dist = math.sqrt(dist2)
+
+            # normalized displacement from j to i
+            ndx = dx / dist
+            ndy = dy / dist
+
+            # repulsive weight
+            weight = 1.0 / (dist ** power)
+
+            Fx += ndx * weight
+            Fy += ndy * weight
+
+        # normalize force to unit direction
+        mag = math.sqrt(Fx*Fx + Fy*Fy)
+        if mag == 0:
+            # fallback direction if symmetric repulsion
+            dirx, diry = 1.0, 0.0
+        else:
+            dirx = Fx / mag
+            diry = Fy / mag
+
+        # compute label position at fixed radius
+        lx = xi + R * dirx
+        ly = yi + R * diry
+
+        label_positions.append((lx, ly))
+
+    return label_positions
