@@ -2,9 +2,9 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-import os
+import locale
 from prefect import flow, task
-from datetime import datetime, timezone
+from datetime import datetime
 from PIL import Image
 
 from nightscout import get_nightscout_data
@@ -22,7 +22,7 @@ from eidash.esp32_client import send_image
 
 
 @task
-def fetch_data():
+def fetch_data() -> dict:
     dataSources = {
         "nightscout": get_nightscout_data(),
         "weather": fetch_current_weerlive_data(),
@@ -37,27 +37,44 @@ def fetch_data():
     return dataSources
 
 @task
-def draw_data(data) -> Image.Image:
+def draw_data(data: dict) -> Image.Image:
     hkdraw = HKDraw(width=800, height=480, font_dir='src/flows/eidash/fonts')
-    hkdraw.draw_data(data)
+    if data is None:
+        hkdraw.clear_image()
+    else:
+        hkdraw.draw_data(data)
     return hkdraw.context.image
 
-
 @task
-def send_image_task(image):
+def send_image_task(image: Image.Image):
     send_image(image)
 
+def is_standby_time() -> bool:
+    """Determine if the current time is within the standby period.
+    
+    Returns:
+        True if within standby hours, False otherwise.
+    """
+    now = datetime.now()
+    return now.hour < 7
 
 @flow(name="E-Ink Dashboard workflow")
 def eidash_workflow():
-    data = fetch_data()
+    #locale.setlocale(locale.LC_TIME, "nl_NL.utf8")
+    is_standby = is_standby_time()
+
+    # Fetch data
+    data = None if is_standby else fetch_data()
+
+    # Draw image
     image = draw_data(data)
 
     # Write image to local file for debugging
     image_path = "eidash_output.png"
     image.save(image_path)
 
-    # send_image(image)
+    # Send image to ESP32 device
+    send_image_task(image)
 
 
 if __name__ == "__main__":
