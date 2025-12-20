@@ -94,11 +94,14 @@ def draw_atmos(context, data, x, y, w, h):
     context.draw.text((x, y), text, font=context.font_small, fill=context.black)
 
 def draw_forecast(context, data, x, y, w, h):
-    text = f'Verw: {data["weather"]["verw"]}'
+    text = f'Verw: {data["verw"]}'
     # Yes, we use the weerlive flag to indicate if there is a warning
     # and use the knmi data for the text:
-    if data["weather"]["alarm"] == "1":
-        text += f' | {data["warning"]["text"]}'
+    if data["alarm"] == "1":
+        if data.get("warning") is not None:
+            text += f' | {data["warning"]["text"]}'
+        else:
+            text += f' | {data["alarmtxt"]}'
     context.image_text.write_text_box(x, y, text, box_width=w, \
         font=context.font_small, color=context.black)
 

@@ -56,51 +56,53 @@ class HKDraw:
         w1 = 140
         x1 = (self.context.width - 3 * w1) / 2
         weatherData = data.get("weather", None)
-        warningData = data["knmi_warnings"]
+        warningData = data.get("knmi_warnings", None)
+        if weatherData is not None:
+            weatherData["warning"] = warningData
         add_call(draw_current, context, weatherData, x1, y1, w1, 80)
         add_call(draw_temp, context, weatherData, x1+w1, y1, w1, 64)
         add_call(draw_wind, context, weatherData, x1+2*w1, y1, w1, 80, 28)
         add_call(draw_atmos, context, weatherData, 10, 250, w1, 64)
-        isWarningActive = weatherData["alarm"] == "1"
+        isWarningActive = weatherData is not None and weatherData.get("alarm") == "1"
         forecast_x = 90
         forecast_text_y = 150 if isWarningActive else y1 + 110
         add_call(draw_forecast_table, context, weatherData, forecast_x, y1 + 110, 100, 30)
-        add_call(draw_forecast, context, {"weather": weatherData, "warning": warningData}, forecast_x + 400, forecast_text_y, 300, 0)
+        add_call(draw_forecast, context, weatherData, forecast_x + 400, forecast_text_y, 300, 0)
         if isWarningActive:
             add_call(draw_warning_symbol, context, {}, x1+3*w1, y1, 28, 6)
 
         # Buienradar
-        add_call(draw_buienradar_chart, context, data["buienradar_text"], 10, 170, 74, 74)
+        buienradar_data = data.get("buienradar_text", None)
+        add_call(draw_buienradar_chart, context, buienradar_data, 10, 170, 74, 74)
 
         # Moon phase and planets
-        ephemData = data["ephem"]
+        ephemData = data.get("ephem", None)
         add_call(draw_moon_phase, context, ephemData, 748, 80, 32)
         add_call(draw_planets, context, ephemData, 10, 330, 600, 130)
 
         # Sunspots
-        add_call(draw_sunspot_image, context, data["sunspot_image"], 10, 80-36, 72, 72)
-        add_call(draw_sunspot_number, context, data["sunspot_number"], 10, 120, 72, 20)
-        add_call(draw_kp_index, context, data["kp_data"], 10, 140, 140, 20)
+        add_call(draw_sunspot_image, context, data.get("sunspot_image", None), 10, 80-36, 72, 72)
+        add_call(draw_sunspot_number, context, data.get("sunspot_number", None), 10, 120, 72, 20)
+        add_call(draw_kp_index, context, data.get("kp_data", None), 10, 140, 140, 20)
 
         # Nightscout
-        nightScoutData = data["nightscout"]
+        nightScoutData = data.get("nightscout", None)
         add_call(draw_nightscout, context, nightScoutData, 650, self.context.height-36-10, 150, 36+10)
 
         # Birthdays
-        birthdayData = data["birthdays"]
+        birthdayData = data.get("birthdays", None)
         add_call(draw_birthdays, context, birthdayData, 100, y1-20)
 
         # Actually execute each draw call with proper error handling
         for call in draw_calls:
             logging.info("DRAWING " + call["name"])
             try:
-                print(call["name"], type(call["data"]))
-                if "error" in call["data"]:
-                    # Error in data fetching
-                    self.draw_error(call["data"]["error"], call["x"], call["y"])
-                elif call["data"] is None:
+                if call["data"] is None:
                     # Data was not fetched to begin with
                     self.draw_error("No data", call["x"], call["y"])
+                elif "error" in call["data"]:
+                    # Error in data fetching
+                    self.draw_error(call["data"]["error"], call["x"], call["y"])
                 else:
                     call["call"]()   # Execute the functools.partial
             except Exception as err:
