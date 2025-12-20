@@ -14,10 +14,8 @@ def cache_key_fn(task, args):
     return "weerlive_data_" + args.get('location', 'default')
 
 @task(
-    persist_result=True,
     cache_key_fn=cache_key_fn,
     cache_expiration=timedelta(minutes=10),
-    cache_policy=TASK_SOURCE + INPUTS,
     retries=3,
     retry_delay_seconds=5,
 )
@@ -34,19 +32,22 @@ def fetch_current_weerlive_data():
         with cache invalidation based on timestamp."""
     location = os.environ['WL_LOCATION']
     data = get_weerlive_data(location)
-    print(data)
-    date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M')
+    
+    # Check if data is stale based on its timestamp
+    date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M:%S')
     cache_key = cache_key_fn(None, {'location': location})
     if maybe_invalidate_cache(date_result, cache_key, 720):
         data = get_weerlive_data(location)  # Re-fetch
-        print(data)
+    
     return data
 
 @task
 def process_weerlive_data(data: dict) -> dict:
     # Filter the keys that we want
-    keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'winds', 'luchtd', 'dauwp', 'zicht', 'image']
+    keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'windbft', 'luchtd', 'dauwp', 'zicht', 'image']
     processed_data = {key: data[key] for key in keys}
+    # rename columns
+    processed_data['winds'] = processed_data.pop('windbft')
     processed_data['datetime'] = datetime.fromtimestamp(int(data['timestamp']), tz=timezone.utc)
     return processed_data
 
@@ -59,6 +60,7 @@ def store_weerlive_data(data: dict):
 @flow
 def weerlive_data_etl():
     data = fetch_current_weerlive_data()
+    print(data)
     processed_data = process_weerlive_data(data)
     store_weerlive_data(processed_data)
 
