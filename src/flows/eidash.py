@@ -83,7 +83,7 @@ def is_standby_time() -> bool:
 
 @flow(name="E-Ink Dashboard workflow")
 def eidash_workflow():
-    #locale.setlocale(locale.LC_TIME, "nl_NL.utf8")
+    locale.setlocale(locale.LC_TIME, "nl_NL.utf8")
     is_standby = is_standby_time()
 
     # Fetch data
@@ -93,11 +93,11 @@ def eidash_workflow():
     image = draw_data(data)
 
     # Write image to local file for debugging
-    image_path = "eidash_output.png"
-    image.save(image_path)
+    # image_path = "eidash_output.png"
+    # image.save(image_path)
 
     # Send image to ESP32 device
-    #send_image_task(image)
+    send_image_task(image)
 
 
 if __name__ == "__main__":
