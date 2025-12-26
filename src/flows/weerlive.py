@@ -34,7 +34,7 @@ def fetch_current_weerlive_data():
     data = get_weerlive_data(location)
     
     # Check if data is stale based on its timestamp
-    date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M:%S')
+    date_result = datetime.strptime(data.get('time'), '%d-%m-%Y %H:%M')
     cache_key = cache_key_fn(None, {'location': location})
     if maybe_invalidate_cache(date_result, cache_key, 720):
         data = get_weerlive_data(location)  # Re-fetch
@@ -44,10 +44,10 @@ def fetch_current_weerlive_data():
 @task
 def process_weerlive_data(data: dict) -> dict:
     # Filter the keys that we want
-    keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'windbft', 'luchtd', 'dauwp', 'zicht', 'image']
+    keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'winds', 'luchtd', 'dauwp', 'zicht', 'image']
     processed_data = {key: data[key] for key in keys}
     # rename columns
-    processed_data['winds'] = processed_data.pop('windbft')
+    #processed_data['winds'] = processed_data.pop('winds')
     processed_data['datetime'] = datetime.fromtimestamp(int(data['timestamp']), tz=timezone.utc)
     return processed_data
 
