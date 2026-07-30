@@ -2,9 +2,14 @@
 name: data-flows
 prefect-version: 3.4.6
 
+# Set working directory so imports work correctly
+pull:
+  - prefect.deployments.steps.set_working_directory:
+      directory: /home/pi/df-data-flows
+
 deployments:
   - name: eidash-deployment
-    entrypoint: src/flows/eidash.py:eidash_workflow
+    entrypoint: src/flows/eidash_flow.py:eidash_workflow
     work_pool:
       name: default
       work_queue_name: default

@@ -1,3 +1,10 @@
+import sys
+from pathlib import Path
+
+# Ensure src/flows is in path for imports to work
+flows_dir = Path(__file__).parent.resolve()
+if str(flows_dir) not in sys.path:
+    sys.path.insert(0, str(flows_dir))
 
 import functools
 import logging
