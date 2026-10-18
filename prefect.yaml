@@ -23,6 +23,8 @@ deployments:
     work_pool:
       name: default
       work_queue_name: default
+      job_variables:
+        timeout_seconds: 120
     schedule:
       cron: "*/5 * * * *"
       timezone: UTC
@@ -33,6 +35,8 @@ deployments:
     work_pool:
       name: default
       work_queue_name: default
+      job_variables:
+        timeout_seconds: 120
     schedule:
       cron: "*/5 * * * *"
       timezone: UTC
@@ -43,6 +47,8 @@ deployments:
     work_pool:
       name: default
       work_queue_name: default
+      job_variables:
+        timeout_seconds: 120
     schedule:
       cron: "*/5 * * * *"
       timezone: UTC
