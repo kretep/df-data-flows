@@ -41,7 +41,7 @@ wind_dir_names_verw = ["Z", "ZZO", "ZO", "OZO", "O", "ONO", "NO", "NNO",
 
 def draw_wind(context, data, x, y, w, h, arrow_r):
     # Text
-    text = f'{data["windr"]} {data["winds"]}'
+    text = f'{data["windr"]} {data["windbft"]}'
     text_dim = context.textsize(text, context.font_small)
     context.image_text.write_text_box(x, y + h - context.font_small.size, text, w,
         font=context.font_small, color=context.black, align='center')
@@ -123,7 +123,6 @@ def draw_forecast_table(context, data, x, y, column_width, row_height):
     draw = context.draw
     font = context.font_small
     h = 5 * row_height
-    now = datetime.now()
     
     # Row headers
     for i, text in enumerate(["", "Verw", "Temp", "Wind", "Zon/reg"]):
@@ -137,23 +136,22 @@ def draw_forecast_table(context, data, x, y, column_width, row_height):
             align='center', font=font, color=context.black)
 
     # Columns per day
-    for i in range(3):
+    for i, verw in enumerate(data['wk_verw'][:3]):
         line_x = x + (i+1) * column_width
         draw.line([(line_x, y), (line_x, y+h)])
-        
-        day = now + timedelta(days=i)
+
+        day = datetime.strptime(verw['dag'], '%d-%m-%Y')
         day_text = day.strftime('%a')
         draw_cell(x + (i+1) * column_width, y, day_text)
-        
-        weersplit = data[f'd{i}weer'].split('_')
-        icon_text = ''.join([weather_icons[weer] for weer in weersplit])
+
+        icon_text = weather_icons.get(verw['image'], '?')
         draw_cell(x + (i+1) * column_width, y + 1 * row_height - 10, icon_text, font=context.font_icons_small)
-        
-        temp_text = f"{data[f'd{i}tmax']}/{data[f'd{i}tmin']}°C"
+
+        temp_text = f"{verw['max_temp']}/{verw['min_temp']}°C"
         draw_cell(x + (i+1) * column_width, y + 2 * row_height, temp_text)
-        
-        wind_text = f"{data[f'd{i}windr']} {data[f'd{i}windk']}"
+
+        wind_text = f"{verw['windr']} {verw['windbft']}"
         draw_cell(x + (i+1) * column_width, y + 3 * row_height, wind_text)
-        
-        sun_rain_text = f"{data[f'd{i}zon']}/{data[f'd{i}neerslag']}%"
+
+        sun_rain_text = f"{verw['zond_perc_dag']}/{verw['neersl_perc_dag']}%"
         draw_cell(x + (i+1) * column_width, y + 4 * row_height, sun_rain_text)
