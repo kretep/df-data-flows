@@ -36,18 +36,19 @@ def draw_current(context, data, x, y, w, h):
 
 wind_dir_names = ["Zuid", "ZZO", "ZO", "OZO", "Oost", "ONO", "NO", "NNO", 
         "Noord", "NNW", "NW", "WNW", "West", "WZW", "ZW", "ZZW"]
-wind_dir_names_verw = ["Z", "ZZO", "ZO", "OZO", "O", "ONO", "NO", "NNO", 
-        "N", "NNW", "NW", "WNW", "W", "WZW", "ZW", "ZZW"] # and VAR for variable
+wind_dir_mapping = { "Z": "Zuid", "O": "Oost", "W": "West", "N": "Noord" }
+# wind_dir_names_verw = ["Z", "ZZO", "ZO", "OZO", "O", "ONO", "NO", "NNO", 
+#         "N", "NNW", "NW", "WNW", "W", "WZW", "ZW", "ZZW"] # and VAR for variable
 
 def draw_wind(context, data, x, y, w, h, arrow_r):
     # Text
-    text = f'{data["windr"]} {data["windbft"]}'
+    windr = wind_dir_mapping.get(data["windr"], data["windr"])
+    text = f'{windr} {data["windbft"]}'
     text_dim = context.textsize(text, context.font_small)
     context.image_text.write_text_box(x, y + h - context.font_small.size, text, w,
         font=context.font_small, color=context.black, align='center')
 
     # Arrow
-    windr = data["windr"]
     if windr in wind_dir_names:
         angle = wind_dir_names.index(windr) / len(wind_dir_names) * 360
         draw_arrow(context, x + w/2, y + arrow_r, arrow_r, angle, 3)
