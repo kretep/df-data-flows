@@ -55,7 +55,13 @@ class HKDraw:
         y1 = 60
         w1 = 140
         x1 = (self.context.width - 3 * w1) / 2
-        weatherData = data.get("weather", None)
+        weatherRaw = data.get("weather", None)
+        if weatherRaw is not None and "liveweer" in weatherRaw:
+            weatherData = weatherRaw["liveweer"][0]
+            forecastData = weatherRaw.get("wk_verw", [])
+        else:
+            # None or error dict: pass through so it is drawn as an error
+            weatherData = forecastData = weatherRaw
         warningData = data.get("knmi_warnings", None)
         if weatherData is not None:
             weatherData["warning"] = warningData
@@ -66,7 +72,7 @@ class HKDraw:
         isWarningActive = weatherData is not None and weatherData.get("alarm") == "1"
         forecast_x = 90
         forecast_text_y = 150 if isWarningActive else y1 + 110
-        add_call(draw_forecast_table, context, weatherData, forecast_x, y1 + 110, 100, 30)
+        add_call(draw_forecast_table, context, forecastData, forecast_x, y1 + 110, 100, 30)
         add_call(draw_forecast, context, weatherData, forecast_x + 400, forecast_text_y, 300, 0)
         if isWarningActive:
             add_call(draw_warning_symbol, context, {}, x1+3*w1, y1, 28, 6)

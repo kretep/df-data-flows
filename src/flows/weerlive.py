@@ -16,18 +16,14 @@ def cache_key_fn(task, args):
 @task(
     cache_key_fn=cache_key_fn,
     cache_expiration=timedelta(minutes=10),
-    retries=3,
+    retries=1,
     retry_delay_seconds=5,
 )
 def get_weerlive_data(location: str) -> dict:
     print(f"Fetching Weerlive data for location: {location}")
     wl_key = os.environ['WL_KEY']
     query = f'https://weerlive.nl/api/weerlive_api_v2.php?key={wl_key}&locatie={location}'
-    data = fetch_json(query)
-    weather = data['liveweer'][0]
-    # Multi-day forecast is a separate top-level array in the v2 API
-    weather['wk_verw'] = data.get('wk_verw', [])
-    return weather
+    return fetch_json(query)
 
 @task
 def fetch_current_weerlive_data():
@@ -37,15 +33,16 @@ def fetch_current_weerlive_data():
     data = get_weerlive_data(location)
     
     # Check if data is stale based on its timestamp
-    date_result = datetime.fromtimestamp(int(data['timestamp']))
+    date_result = datetime.fromtimestamp(int(data['liveweer'][0]['timestamp']))
     cache_key = cache_key_fn(None, {'location': location})
-    if maybe_invalidate_cache(date_result, cache_key, 720):
+    if maybe_invalidate_cache(date_result, cache_key, 720, min_cache_age_seconds=270):
         data = get_weerlive_data(location)  # Re-fetch
     
     return data
 
 @task
 def process_weerlive_data(data: dict) -> dict:
+    data = data['liveweer'][0]
     # Filter the keys that we want
     keys = ['temp', 'gtemp', 'samenv', 'lv', 'windr', 'windbft', 'luchtd', 'dauwp', 'zicht', 'image']
     processed_data = {key: data[key] for key in keys}
@@ -63,6 +60,7 @@ def store_weerlive_data(data: dict):
 @flow
 def weerlive_data_etl():
     data = fetch_current_weerlive_data()
+    print(f"Fetched Weerlive data: {data}")
     processed_data = process_weerlive_data(data)
     store_weerlive_data(processed_data)
 

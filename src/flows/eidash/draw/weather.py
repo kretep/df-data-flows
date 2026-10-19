@@ -136,7 +136,7 @@ def draw_forecast_table(context, data, x, y, column_width, row_height):
             align='center', font=font, color=context.black)
 
     # Columns per day
-    for i, verw in enumerate(data['wk_verw'][:3]):
+    for i, verw in enumerate(data[:3]):
         line_x = x + (i+1) * column_width
         draw.line([(line_x, y), (line_x, y+h)])
 
