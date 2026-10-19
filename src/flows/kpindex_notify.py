@@ -11,7 +11,7 @@ from common.ntfy_utils import send_notification
 def get_kp_index() -> int:
     url = os.getenv("KP_INDEX_URL")
     data = fetch_json(url)
-    kp_index = float(data[-1][1])
+    kp_index = float(data[-1]["Kp"])
     return { "kp_index": kp_index }
 
 
